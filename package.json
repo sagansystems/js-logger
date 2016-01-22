@@ -1,0 +1,15 @@
+{
+  "name": "js-logger",
+  "version": "0.0.1",
+  "description": "Structured js logging",
+  "main": "logger.js",
+  "scripts": {
+    "test": "jasmine jasmine.js"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-preset-es2015": "^6.3.13",
+    "jasmine": "^2.4.1"
+  }
+}
