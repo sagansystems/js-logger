@@ -4,7 +4,7 @@
   "description": "Structured js logging",
   "main": "logger.js",
   "scripts": {
-    "test": "jasmine jasmine.js"
+    "test": "node jasmine.js"
   },
   "license": "ISC",
   "repository": "https://github.com/sagansystems/js-logger.git",
