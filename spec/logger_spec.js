@@ -1,4 +1,6 @@
-import createLogger from '../logger';
+'use strict';
+
+var createLogger = require('../logger');
 
 describe('Logger', function() {
   var testTime;
@@ -49,7 +51,7 @@ describe('Logger', function() {
   });
   it('Replace logger', function() {
     var params;
-    log.logger = {log(...args) { params = args; }}
+    log.logger = { log() { params = [].slice.call(arguments); }}
     log('foo')
     expect(params).toEqual(['operational', 'foo', undefined]);
   });

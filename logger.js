@@ -1,7 +1,7 @@
 // logger
 'use strict';
 
-export class Logger {
+class Logger {
   constructor(serviceName) {
     this.serviceName = serviceName;
   }
@@ -20,7 +20,7 @@ export class Logger {
   }
 }
 
-export default function createLogger(serviceName) {
+function createLogger(serviceName) {
   var logger = new Logger(serviceName);
 
   function log(message, meta) {
@@ -37,3 +37,5 @@ export default function createLogger(serviceName) {
   log.logger = logger;
   return log;
 }
+
+module.exports = createLogger;
