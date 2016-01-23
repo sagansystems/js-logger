@@ -51,8 +51,8 @@ describe('Logger', function() {
   });
   it('Replace logger', function() {
     var params;
-    log.logger = { log() { params = [].slice.call(arguments); }}
-    log('foo')
+    log.logger = { log() { params = [].slice.call(arguments); }};
+    log('foo');
     expect(params).toEqual(['operational', 'foo', undefined]);
   });
 });
