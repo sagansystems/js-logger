@@ -3,7 +3,10 @@
 Structured logging for Javascript
 
 ## Usage
-```var log = createLogger("your-service-name");```
+```js
+var log = createLogger("your-service-name");
+log.handleUncaughtException();
+```
 
 Operational logging:
 
@@ -15,7 +18,9 @@ Debug logging:
 
 Error logging:
 
-```log.error('message', optional-meta);```
+```log.error('message', optional-meta, error);```
+
+If raven is configured the error will be sent to sentry
 
 Silencing the logger:
 
