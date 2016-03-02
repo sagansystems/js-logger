@@ -1,6 +1,7 @@
 'use strict';
 
 var createLogger = require('../logger');
+var mergeTags = require('../mergeTags');
 
 describe('Logger', function() {
   var testTime;
@@ -49,6 +50,7 @@ describe('Logger', function() {
 
     expect(console.log).toHaveBeenCalledWith(testLogMsgString);
   });
+
   it('Replace logger', function() {
     var params;
     log.logger = { log() { params = [].slice.call(arguments); }};
