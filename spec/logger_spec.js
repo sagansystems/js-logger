@@ -1,7 +1,6 @@
 'use strict';
 
 var createLogger = require('../logger');
-var mergeTags = require('../mergeTags');
 
 describe('Logger', function() {
   var testTime;

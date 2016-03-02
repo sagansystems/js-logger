@@ -2,12 +2,10 @@
 'use strict';
 
 var raven = require("raven");
-var mergeTags = require("./mergeTags");
 
 class Logger {
-  constructor(serviceName, envTags) {
+  constructor(serviceName) {
     this.serviceName = serviceName;
-    this.envTags = envTags;
   }
 
   log(severity, message, meta, error) {
@@ -32,7 +30,7 @@ class Logger {
 }
 
 function createLogger(serviceName, envTags) {
-  var logger = new Logger(serviceName, envTags);
+  var logger = new Logger(serviceName);
   var client;
   var sentryDSN = process.env.SENTRY_DSN;
 
@@ -48,8 +46,7 @@ function createLogger(serviceName, envTags) {
     log.logger.log('error', message, meta, error);
     if (client) {
       if (error) {
-        mergedTags = mergeTags(meta, log.logger.envTags)
-        client.captureException(error, {extra: {mergedTags, message}});
+        client.captureException(error, {extra: {meta, message}});
       } else {
         client.captureMessage(message, {extra: {meta}});
       }
@@ -72,16 +69,18 @@ function createLogger(serviceName, envTags) {
       });
     }
   };
+
   log.logger = logger;
 
   if (sentryDSN) {
     client = new raven.Client(sentryDSN, {logger: serviceName});
-    log('logging errors to sentry');
+    client.setExtraContext(envTags)
+    log('logging errors to sentry, envTags: ' + JSON.stringify(envTags));
   } else {
     log('not logging errors to sentry');
   }
 
- return log;
+  return log;
 }
 
 module.exports = createLogger;
