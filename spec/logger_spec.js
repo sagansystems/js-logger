@@ -49,6 +49,7 @@ describe('Logger', function() {
 
     expect(console.log).toHaveBeenCalledWith(testLogMsgString);
   });
+
   it('Replace logger', function() {
     var params;
     log.logger = { log() { params = [].slice.call(arguments); }};

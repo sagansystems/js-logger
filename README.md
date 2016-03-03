@@ -8,6 +8,11 @@ var log = createLogger("your-service-name");
 log.handleUncaughtException();
 ```
 
+you can also pass optional tags to be included with every error
+```js
+var log = createLogger("your-service-name", {"cluster": clusterName});
+```
+
 Operational logging:
 
 ```log('message', optional-meta);```
