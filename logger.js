@@ -74,7 +74,7 @@ function createLogger(serviceName, envTags) {
 
   if (sentryDSN) {
     client = new raven.Client(sentryDSN, {logger: serviceName});
-    client.setExtraContext(envTags)
+    client.setTagsContext(envTags)
     log('logging errors to sentry, envTags: ' + JSON.stringify(envTags));
   } else {
     log('not logging errors to sentry');
