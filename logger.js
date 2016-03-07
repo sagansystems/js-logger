@@ -29,7 +29,7 @@ class Logger {
   }
 }
 
-function createLogger(serviceName, envTags) {
+function createLogger(serviceName, release, envTags) {
   var logger = new Logger(serviceName);
   var client;
   var sentryDSN = process.env.SENTRY_DSN;
@@ -74,7 +74,8 @@ function createLogger(serviceName, envTags) {
 
   if (sentryDSN) {
     client = new raven.Client(sentryDSN, {logger: serviceName});
-    client.setTagsContext(envTags)
+    client.setTagsContext(envTags);
+    client.setRelease(release);
     log('logging errors to sentry, envTags: ' + JSON.stringify(envTags));
   } else {
     log('not logging errors to sentry');
