@@ -1,6 +1,6 @@
 'use strict';
 
-var createLogger = require('../logger');
+var Logger = require('../logger');
 
 describe('Logger', function() {
   var testTime;
@@ -11,9 +11,10 @@ describe('Logger', function() {
   var message = 'test message';
   var meta = {test: 'meta'};
   var expectedLogged;
-  var log = createLogger(testServiceName, testRelease, null, {sentryClient: sentrySpy, consoleWriter: consoleSpy});
+  var logger;
 
   beforeEach(function() {
+    logger = new Logger(testServiceName, testRelease, null, {sentryClient: sentrySpy, consoleWriter: consoleSpy});
     testTime = new Date();
     jasmine.clock().install();
     jasmine.clock().mockDate(testTime);
@@ -29,32 +30,32 @@ describe('Logger', function() {
     jasmine.clock().uninstall();
   });
 
-  it('Operational log without meta information', function() {
-    log(message);
+  it('operational logs without meta information', function() {
+    logger.log(message);
     var testLogMsgString = JSON.stringify(expectedLogged);
 
     expect(consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
   });
 
-  it('Operational log with meta information', function() {
-    log.log(message, meta);
+  it('operational logs with meta information', function() {
+    logger.log(message, meta);
     expectedLogged.meta = meta;
     var testLogMsgString = JSON.stringify(expectedLogged);
 
     expect(consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
   });
 
-  it('Debug log', function() {
-    log.debug(message);
+  it('debug logs', function() {
+    logger.debug(message);
     expectedLogged.severity = 'debug';
     var testLogMsgString = JSON.stringify(expectedLogged);
 
     expect(consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
   });
 
-  it('Error log', function() {
+  it('error logs', function() {
     var testError = new Error('test');
-    log.error(message, meta, testError);
+    logger.error(message, meta, testError);
     expectedLogged.severity = 'error';
     expectedLogged.meta = meta;
     expectedLogged.error = {
@@ -67,9 +68,9 @@ describe('Logger', function() {
     expect(sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(testError);
   });
 
-  it('Error log with string', function() {
+  it('error logs with string', function() {
     var testErrorStr = 'errorString';
-    log.error(message, meta, testErrorStr);
+    logger.error(message, meta, testErrorStr);
     expectedLogged.severity = 'error';
     expectedLogged.meta = meta;
     expectedLogged.error = testErrorStr;
@@ -79,9 +80,9 @@ describe('Logger', function() {
     expect(sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(new Error(testErrorStr));
   });
 
-  it('Error log with object', function() {
+  it('error logs with object', function() {
     var testErrorObj = {errorCode: '101', errorMessage: 'the end'};
-    log.error(message, meta, testErrorObj);
+    logger.error(message, meta, testErrorObj);
     expectedLogged.severity = 'error';
     expectedLogged.meta = meta;
     expectedLogged.error = testErrorObj;
@@ -91,15 +92,17 @@ describe('Logger', function() {
     expect(sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(new Error(JSON.stringify(testErrorObj)));
   });
 
-  it('Patches for uncaught errors', function() {
-    log.handleUncaughtException();
+  it('patches for uncaught errors', function() {
+    logger.handleUncaughtException();
     expect(sentrySpy.patchGlobal).toHaveBeenCalled();
   });
 
-  it('Replace logger - deprecated', function() {
-    var params;
-    log.logger = { log() { params = [].slice.call(arguments); }};
-    log('foo');
-    expect(params).toEqual(['foo', undefined]);
+  it('replaces logger', function() {
+    var myConsoleSpy = jasmine.createSpyObj(['log']);
+    logger.consoleWriter = myConsoleSpy;
+    logger.log(message);
+    var testLogMsgString = JSON.stringify(expectedLogged);
+
+    expect(myConsoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
   });
 });

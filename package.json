@@ -1,6 +1,6 @@
 {
   "name": "js-logger",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Structured js logging",
   "main": "logger.js",
   "scripts": {
