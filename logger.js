@@ -99,26 +99,4 @@ class Logger {
   }
 }
 
-function createLogger(serviceName, release, envTags, opts) {
-  var logger = new Logger(serviceName, release, envTags, opts);
-
-  var log = function(message, meta) {
-    log.logger.log(message, meta);
-  };
-  log.logger = logger;
-  log.log = function(message, meta) {
-    this.logger.log(message, meta);
-  };
-  log.debug = function(message, meta) {
-    this.logger.debug(message, meta);
-  };
-  log.error = function(message, meta, error) {
-    this.logger.error(message, meta, error);
-  };
-  log.handleUncaughtException = function() {
-    this.logger.handleUncaughtException();
-  };
-  return log;
-}
-
-module.exports = createLogger;
+module.exports = Logger;

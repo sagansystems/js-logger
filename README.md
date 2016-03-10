@@ -4,29 +4,30 @@ Structured logging for Javascript
 
 ## Usage
 ```js
-var log = createLogger("your-service-name");
-log.handleUncaughtException();
-```
-
-you can also pass optional tags to be included with every error
-```js
-var log = createLogger("your-service-name", {"cluster": clusterName});
+var logger = new Logger("your-service-name", "your-release-version", {envTags: forSentry});
+logger.handleUncaughtException();
 ```
 
 Operational logging:
 
-```log('message', optional-meta);```
+```logger.log('message', optional-meta);```
 
 Debug logging:
 
-```log.debug('message', optional-meta);```
+```logger.debug('message', optional-meta);```
 
 Error logging:
 
-```log.error('message', optional-meta, error);```
+```logger.error('message', optional-meta, error);```
 
 If raven is configured the error will be sent to sentry
 
 Silencing the logger:
 
-```log.logger = { log() {} };```
+```logger.consoleWriter = { log: function() {} };```
+
+Replacing underlying loggers with spys for testing:
+
+```js
+var testLogger = new Logger("service", "release", {envTags: forTest}, {consoleWriter: consoleSpy, sentryClient: sentrySpy});
+```
