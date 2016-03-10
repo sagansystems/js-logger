@@ -4,63 +4,43 @@
 var raven = require("raven");
 
 class Logger {
-  constructor(serviceName) {
+  constructor(serviceName, release, envTags, opts) {
     this.serviceName = serviceName;
+
+    var opts = opts || {};
+    this.consoleWriter = opts.consoleWriter
+      || console;
+    this.sentryClient = opts.sentryClient
+      || this._createSentryClient(serviceName, release, envTags);
   }
 
-  log(severity, message, meta, error) {
-    var currentTime = new Date();
-    var logMsg = {
-      timestamp: currentTime.toISOString(),
-      service_name: this.serviceName,
-      severity: severity,
-      message: message,
-      meta: meta,
-    };
-    if (error) {
-      if (error instanceof Error ) {
-        logMsg.error = {message: error.message, stack: error.stack};
-      } else {
-        logMsg.error = error;
-      }
-    }
-    var logString = JSON.stringify(logMsg);
-    console.log(logString);
-  }
-}
-
-function createLogger(serviceName, release, envTags) {
-  var logger = new Logger(serviceName);
-  var client;
-  var sentryDSN = process.env.SENTRY_DSN;
-
-  function log(message, meta) {
-    log.logger.log('operational', message, meta);
+  log(message, meta) {
+    this._log('operational', message, meta);
   }
 
-  log.debug = function(message, meta) {
-    log.logger.log('debug', message, meta);
-  };
+  debug(message, meta) {
+    this._log('debug', message, meta);
+  }
 
-  log.error = function(message, meta, error) {
-    log.logger.log('error', message, meta, error);
-    if (client) {
+  error(message, meta, error) {
+    this._log('error', message, meta, error);
+    if (this.sentryClient) {
       if (error) {
-        client.captureException(error, {extra: {meta, message}});
+        this.sentryClient.captureException(this._errorify(error), {extra: {meta, message}});
       } else {
-        client.captureMessage(message, {extra: {meta}});
+        this.sentryClient.captureMessage(message, {extra: {meta}});
       }
     }
   };
 
-  function uncaughtException(meta, err) {
-    log.error('uncaught exception, exiting', meta, err);
-    process.exit(1);
-  }
+  handleUncaughtException() {
+    function uncaughtException(meta, err) {
+      log.error('uncaught exception, exiting', meta, err);
+      process.exit(1);
+    }
 
-  log.handleUncaughtException = function() {
-    if (client) {
-      client.patchGlobal((sentrySent, err) => {
+    if (this.sentryClient) {
+      this.sentryClient.patchGlobal((sentrySent, err) => {
         uncaughtException({sentrySent}, err);
       });
     } else {
@@ -68,21 +48,76 @@ function createLogger(serviceName, release, envTags) {
         uncaughtException(null, err);
       });
     }
-  };
-
-  log.logger = logger;
-
-  if (sentryDSN) {
-    client = new raven.Client(sentryDSN, {
-      logger: serviceName,
-      release: release
-    });
-    client.setTagsContext(envTags);
-    log('logging errors to sentry, envTags: ' + JSON.stringify(envTags));
-  } else {
-    log('not logging errors to sentry');
   }
 
+  _log(severity, message, meta, error) {
+    var currentTime = new Date();
+    var logMsg = {
+      timestamp: currentTime.toISOString(),
+      service_name: this.serviceName,
+      severity: severity,
+      message: message,
+      meta: meta
+    };
+    if (error) {
+      logMsg.error = this._logify(error);
+    }
+    var logString = JSON.stringify(logMsg);
+    this.consoleWriter.log(logString);
+  }
+
+  _errorify(err) {
+    if (err instanceof Error) {
+      return err;
+    } else if (typeof err === 'string') {
+      return new Error(err);
+    } else {
+      return new Error(JSON.stringify(err));
+    }
+  }
+
+  _logify(err) {
+    if (err instanceof Error) {
+      return {message: err.message, stack: err.stack};
+    }
+    return err;
+  }
+
+  _createSentryClient(serviceName, release, envTags) {
+    var sentryDSN = process.env.SENTRY_DSN;
+    var client;
+    if (sentryDSN) {
+      client = new raven.Client(sentryDSN, {
+        logger: serviceName,
+        release: release
+      });
+      client.setTagsContext(envTags);
+      this.log('logging errors to sentry', {envTags: envTags});
+    } else {
+      this.log('not logging errors to sentry');
+    }
+  }
+}
+
+function createLogger(serviceName, release, envTags, opts) {
+  var logger = new Logger(serviceName, release, envTags, opts);
+
+  var log = function(message, meta) {
+    log.logger.log(message, meta);
+  };
+  log.logger = logger;
+  log.log = function(message, meta) {
+    this.logger.log(message, meta);
+  };
+  log.debug = function(message, meta) {
+    this.logger.debug(message, meta);
+  };
+  log.error = function(message, meta, error) {
+    this.logger.error(message, meta, error);
+  };
+  log.handleUncaughtException = function() {
+    this.logger.handleUncaughtException();
+  };
   return log;
 }
 
