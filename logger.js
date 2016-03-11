@@ -34,10 +34,10 @@ class Logger {
   };
 
   handleUncaughtException() {
-    function uncaughtException(meta, err) {
-      log.error('uncaught exception, exiting', meta, err);
+    var uncaughtException = (meta, err) => {
+      this.error('uncaught exception, exiting', meta, err);
       process.exit(1);
-    }
+    };
 
     if (this.sentryClient) {
       this.sentryClient.patchGlobal((sentrySent, err) => {

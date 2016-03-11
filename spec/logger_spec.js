@@ -92,9 +92,35 @@ describe('Logger', function() {
     expect(sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(new Error(JSON.stringify(testErrorObj)));
   });
 
-  it('patches for uncaught errors', function() {
-    logger.handleUncaughtException();
-    expect(sentrySpy.patchGlobal).toHaveBeenCalled();
+  describe('handleUncaughtException', function() {
+    const error = new Error('uncaught exeception');
+    const sentrySent = true;
+
+    beforeEach(function() {
+      spyOn(process, 'exit');
+
+      sentrySpy.patchGlobal.and.callFake((callback) => {
+        callback(sentrySent, error);
+      });
+
+      spyOn(logger, 'error');
+
+      logger.handleUncaughtException();
+    });
+
+    it('patches for uncaught errors', function() {
+      expect(sentrySpy.patchGlobal).toHaveBeenCalled();
+    });
+
+    it('logs the error', function() {
+      expect(logger.error).toHaveBeenCalledWith(
+        'uncaught exception, exiting', { sentrySent }, error
+      );
+    });
+
+    it('calls process.exit(1)', function() {
+      expect(process.exit).toHaveBeenCalledWith(1);
+    });
   });
 
   it('replaces logger', function() {
