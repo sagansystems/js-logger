@@ -1,13 +1,13 @@
 // logger
 'use strict';
 
-var raven = require("raven");
+var raven = require('raven');
 
 class Logger {
   constructor(serviceName, release, envTags, opts) {
     this.serviceName = serviceName;
 
-    var opts = opts || {};
+    opts = opts || {};
     this.consoleWriter = opts.consoleWriter
       || console;
     this.sentryClient = opts.sentryClient
@@ -31,7 +31,7 @@ class Logger {
         this.sentryClient.captureMessage(message, {extra: {meta}});
       }
     }
-  };
+  }
 
   handleUncaughtException() {
     var uncaughtException = (meta, err) => {
