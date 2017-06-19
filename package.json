@@ -9,7 +9,7 @@
   "license": "ISC",
   "repository": "https://github.com/sagansystems/js-logger.git",
   "dependencies": {
-    "raven": "^0.10.0"
+    "raven": "^2.0.2"
   },
   "devDependencies": {
     "eslint": "^1.10.3",
