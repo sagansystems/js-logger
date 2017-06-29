@@ -8,10 +8,22 @@ class Logger {
     this.serviceName = serviceName;
 
     opts = opts || {};
-    this.consoleWriter = opts.consoleWriter
-      || console;
-    this.sentryClient = opts.sentryClient
-      || this._createSentryClient(serviceName, release, envTags);
+
+    let defaultConsoleWriter = {
+      log(msg) {
+        process.stdout.write(msg, 'utf8');
+        process.stdout.write('\n');
+      }
+    };
+    this.consoleWriter = opts.consoleWriter || defaultConsoleWriter;
+    this.sentryClient = opts.sentryClient || this._createSentryClient(serviceName, release, envTags);
+
+    this.logMessages = [];
+    this.isAsync = false;
+    if (opts.intervalMs) {
+      this.isAsync = true;
+      setInterval(() => this.flush(), opts.intervalMs);
+    }
   }
 
   log(message, meta) {
@@ -26,9 +38,9 @@ class Logger {
     this._log('error', message, meta, error);
     if (this.sentryClient) {
       if (error) {
-        this.sentryClient.captureException(this._errorify(error), {extra: {meta, message}});
+        this.sentryClient.captureException(this._errorify(error), { extra: { meta, message } });
       } else {
-        this.sentryClient.captureMessage(message, {extra: {meta}});
+        this.sentryClient.captureMessage(message, { extra: { meta } });
       }
     }
   }
@@ -41,10 +53,10 @@ class Logger {
 
     if (this.sentryClient) {
       this.sentryClient.patchGlobal((sentrySent, err) => {
-        uncaughtException({sentrySent}, err);
+        uncaughtException({ sentrySent }, err);
       });
     } else {
-      process.on('uncaughtException', (err) => {
+      process.on('uncaughtException', err => {
         uncaughtException(null, err);
       });
     }
@@ -57,13 +69,17 @@ class Logger {
       service_name: this.serviceName,
       severity: severity,
       message: message,
-      meta: meta
+      meta: meta,
     };
     if (error) {
       logMsg.error = this._logify(error);
     }
-    var logString = JSON.stringify(logMsg);
-    this.consoleWriter.log(logString);
+
+    if (this.isAsync) {
+      this.logMessages.push(logMsg);
+    } else {
+      this._writeMessage(logMsg);
+    }
   }
 
   _errorify(err) {
@@ -78,7 +94,7 @@ class Logger {
 
   _logify(err) {
     if (err instanceof Error) {
-      return {message: err.message, stack: err.stack};
+      return { message: err.message, stack: err.stack };
     }
     return err;
   }
@@ -89,13 +105,23 @@ class Logger {
     if (sentryDSN) {
       client = new raven.Client(sentryDSN, {
         logger: serviceName,
-        release: release
+        release: release,
       });
       client.setTagsContext(envTags);
-      this.log('logging errors to sentry', {envTags: envTags});
+      this.log('logging errors to sentry', { envTags: envTags });
     } else {
       this.log('not logging errors to sentry');
     }
+  }
+
+  _writeMessage(msg) {
+    var logString = JSON.stringify(msg);
+    this.consoleWriter.log(logString);
+  }
+
+  flush() {
+    this.logMessages.forEach(msg => this._writeMessage(msg));
+    this.logMessages = [];
   }
 }
 

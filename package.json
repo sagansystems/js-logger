@@ -12,7 +12,7 @@
     "raven": "^0.10.0"
   },
   "devDependencies": {
-    "eslint": "^1.10.3",
+    "eslint": "^4.1.1",
     "jasmine": "^2.4.1"
   }
 }
