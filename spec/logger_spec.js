@@ -148,6 +148,7 @@ describe('Logger', function() {
       });
 
       spyOn(this.subject, 'error');
+      spyOn(this.subject, 'flush');
 
       this.subject.handleUncaughtException();
     });
@@ -158,6 +159,10 @@ describe('Logger', function() {
 
     it('logs the error', function() {
       expect(this.subject.error).toHaveBeenCalledWith('uncaught exception, exiting', { sentrySent }, error);
+    });
+
+    it('flushes messages', function() {
+      expect(this.subject.flush).toHaveBeenCalled();
     });
 
     it('calls process.exit(1)', function() {
