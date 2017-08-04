@@ -48,6 +48,7 @@ class Logger {
   handleUncaughtException() {
     var uncaughtException = (meta, err) => {
       this.error('uncaught exception, exiting', meta, err);
+      this.flush();
       process.exit(1);
     };
 
