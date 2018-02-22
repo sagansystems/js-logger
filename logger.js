@@ -13,7 +13,7 @@ class Logger {
       log(msg) {
         process.stdout.write(msg, 'utf8');
         process.stdout.write('\n');
-      }
+      },
     };
     this.consoleWriter = opts.consoleWriter || defaultConsoleWriter;
     this.sentryClient = opts.sentryClient || this._createSentryClient(serviceName, release, envTags);
@@ -35,14 +35,11 @@ class Logger {
   }
 
   error(message, meta, error) {
-    this._log('error', message, meta, error);
-    if (this.sentryClient) {
-      if (error) {
-        this.sentryClient.captureException(this._errorify(error), { extra: { meta, message } });
-      } else {
-        this.sentryClient.captureMessage(message, { extra: { meta } });
-      }
-    }
+    this._logWithSentry('error', message, meta, error);
+  }
+
+  critical(message, meta, error) {
+    this._logWithSentry('critical', message, meta, error);
   }
 
   handleUncaughtException() {
@@ -80,6 +77,17 @@ class Logger {
       this.logMessages.push(logMsg);
     } else {
       this._writeMessage(logMsg);
+    }
+  }
+
+  _logWithSentry(severity, message, meta, error) {
+    this._log(severity, message, meta, error);
+    if (this.sentryClient) {
+      if (error) {
+        this.sentryClient.captureException(this._errorify(error), { extra: { meta, message } });
+      } else {
+        this.sentryClient.captureMessage(message, { extra: { meta } });
+      }
     }
   }
 
