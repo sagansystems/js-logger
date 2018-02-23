@@ -61,46 +61,51 @@ describe('Logger', function() {
       expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
     });
 
-    it('error logs', function() {
-      var testError = new Error('test');
-      this.subject.error(message, meta, testError);
-      this.expectedLogged.severity = 'error';
-      this.expectedLogged.meta = meta;
-      this.expectedLogged.error = {
-        message: testError.message,
-        stack: testError.stack,
-      };
-      var testLogMsgString = JSON.stringify(this.expectedLogged);
+    itHandlesLogsWithSentry('error');
+    itHandlesLogsWithSentry('critical');
 
-      expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
-      expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(testError);
-    });
+    function itHandlesLogsWithSentry(severity) {
+      it(`${severity} logs`, function() {
+        var testError = new Error('test');
+        this.subject[severity](message, meta, testError);
+        this.expectedLogged.severity = severity;
+        this.expectedLogged.meta = meta;
+        this.expectedLogged.error = {
+          message: testError.message,
+          stack: testError.stack,
+        };
+        var testLogMsgString = JSON.stringify(this.expectedLogged);
 
-    it('error logs with string', function() {
-      var testErrorStr = 'errorString';
-      this.subject.error(message, meta, testErrorStr);
-      this.expectedLogged.severity = 'error';
-      this.expectedLogged.meta = meta;
-      this.expectedLogged.error = testErrorStr;
-      var testLogMsgString = JSON.stringify(this.expectedLogged);
+        expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
+        expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(testError);
+      });
 
-      expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
-      expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(new Error(testErrorStr));
-    });
+      it(`${severity} logs with string`, function() {
+        var testErrorStr = 'errorString';
+        this.subject[severity](message, meta, testErrorStr);
+        this.expectedLogged.severity = severity;
+        this.expectedLogged.meta = meta;
+        this.expectedLogged.error = testErrorStr;
+        var testLogMsgString = JSON.stringify(this.expectedLogged);
 
-    it('error logs with object', function() {
-      var testErrorObj = { errorCode: '101', errorMessage: 'the end' };
-      this.subject.error(message, meta, testErrorObj);
-      this.expectedLogged.severity = 'error';
-      this.expectedLogged.meta = meta;
-      this.expectedLogged.error = testErrorObj;
-      var testLogMsgString = JSON.stringify(this.expectedLogged);
+        expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
+        expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(new Error(testErrorStr));
+      });
 
-      expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
-      expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(
-        new Error(JSON.stringify(testErrorObj))
-      );
-    });
+      it(`${severity} logs with object`, function() {
+        var testErrorObj = { errorCode: '101', errorMessage: 'the end' };
+        this.subject[severity](message, meta, testErrorObj);
+        this.expectedLogged.severity = severity;
+        this.expectedLogged.meta = meta;
+        this.expectedLogged.error = testErrorObj;
+        var testLogMsgString = JSON.stringify(this.expectedLogged);
+
+        expect(this.consoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
+        expect(this.sentrySpy.captureException.calls.mostRecent().args[0]).toEqual(
+          new Error(JSON.stringify(testErrorObj))
+        );
+      });
+    }
   });
 
   describe('asynchronous logging', function() {
