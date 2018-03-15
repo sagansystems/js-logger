@@ -1,5 +1,6 @@
 module.exports = {
     "rules": {
+        "comma-dangle": ["warn", "always-multiline"],
         "indent": [
             2,
             2
