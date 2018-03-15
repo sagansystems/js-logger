@@ -192,4 +192,22 @@ describe('Logger', function() {
       expect(myConsoleSpy.log).toHaveBeenCalledWith(testLogMsgString);
     });
   });
+
+  describe('when SENTRY_DSN is in the env', function() {
+    beforeEach(function() {
+      this.prevSentryDSN = process.env.SENTRY_DSN;
+      process.env.SENTRY_DSN = 'https://test:test@sentry.io/12345';
+    });
+
+    afterEach(function() {
+      process.env.SENTRY_DSN = this.prevSentryDSN;
+    });
+
+    it('creates a sentry client', function() {
+      let logger = new Logger(testServiceName, testRelease, null, {
+        consoleWriter: this.consoleSpy,
+      });
+      expect(logger.sentryClient).toBeDefined();
+    });
+  });
 });

@@ -121,6 +121,7 @@ class Logger {
     } else {
       this.log('not logging errors to sentry');
     }
+    return client;
   }
 
   _writeMessage(msg) {
