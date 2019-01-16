@@ -3,6 +3,22 @@
 
 var raven = require('raven');
 
+const logLevel = {
+  ALL: 0,
+  DEBUG: 1,
+  OPERATIONAL: 2,
+  WARN: 3,
+  ERROR: 4,
+  CRITICAL: 5,
+  properties: {
+    1: {name: "debug", value: 1},
+    2: {name: "operational", value: 2},
+    3: {name: "warn", value: 3},
+    4: {name: "error", value: 4},
+    5: {name: "critical", value: 5},
+  }
+};
+
 class Logger {
   constructor(serviceName, release, envTags, opts) {
     this.serviceName = serviceName;
@@ -17,6 +33,7 @@ class Logger {
     };
     this.consoleWriter = opts.consoleWriter || defaultConsoleWriter;
     this.sentryClient = opts.sentryClient || this._createSentryClient(serviceName, release, envTags);
+    this.logLevel = opts.logLevel || logLevel.ALL;
 
     this.logMessages = [];
     this.isAsync = false;
@@ -27,19 +44,19 @@ class Logger {
   }
 
   log(message, meta) {
-    this._log('operational', message, meta);
+    this._log(logLevel.OPERATIONAL, message, meta);
   }
 
   debug(message, meta) {
-    this._log('debug', message, meta);
+    this._log(logLevel.DEBUG, message, meta);
   }
 
   error(message, meta, error) {
-    this._logWithSentry('error', message, meta, error);
+    this._logWithSentry(logLevel.ERROR, message, meta, error);
   }
 
   critical(message, meta, error) {
-    this._logWithSentry('critical', message, meta, error);
+    this._logWithSentry(logLevel.CRITICAL, message, meta, error);
   }
 
   handleUncaughtException() {
@@ -61,6 +78,10 @@ class Logger {
   }
 
   _log(severity, message, meta, error) {
+    if (severity.value < this.logLevel.value) {
+      return
+    }
+
     var currentTime = new Date();
     var logMsg = {
       timestamp: currentTime.toISOString(),
