@@ -1,0 +1,9 @@
+version: '1.0'
+steps:
+  test:
+    title: Test
+    image: node:10.15
+    working_directory: ${{main_clone}}
+    commands:
+      - npm install
+      - npm test
