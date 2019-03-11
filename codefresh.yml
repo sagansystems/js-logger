@@ -5,5 +5,5 @@ steps:
     image: node:7.10
     working_directory: ${{main_clone}}
     commands:
-      - npm install --dev
+      - npm install
       - npm test
