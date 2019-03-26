@@ -116,7 +116,7 @@ class Logger {
         logger: serviceName,
         release: release,
       });
-      client.setTagsContext(envTags);
+      client.setContext(envTags);
       this.log('logging errors to sentry', { envTags: envTags });
     } else {
       this.log('not logging errors to sentry');
