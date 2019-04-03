@@ -50,7 +50,7 @@ class Logger {
     };
 
     if (this.sentryClient) {
-      this.sentryClient.patchGlobal((sentrySent, err) => {
+      this.sentryClient.install((sentrySent, err) => {
         uncaughtException({ sentrySent }, err);
       });
     } else {
