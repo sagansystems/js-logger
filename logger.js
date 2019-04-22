@@ -50,7 +50,7 @@ class Logger {
     };
 
     if (this.sentryClient) {
-      this.sentryClient.patchGlobal((sentrySent, err) => {
+      this.sentryClient.install((sentrySent, err) => {
         uncaughtException({ sentrySent }, err);
       });
     } else {
@@ -112,11 +112,11 @@ class Logger {
     var sentryDSN = process.env.SENTRY_DSN;
     var client;
     if (sentryDSN) {
-      client = new raven.Client(sentryDSN, {
+      client = raven.config(sentryDSN, {
         logger: serviceName,
         release: release,
+        tags: envTags,
       });
-      client.setContext(envTags);
       this.log('logging errors to sentry', { envTags: envTags });
     } else {
       this.log('not logging errors to sentry');

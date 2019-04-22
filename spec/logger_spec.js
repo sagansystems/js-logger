@@ -19,7 +19,7 @@ describe('Logger', function() {
       message: message,
     };
     this.consoleSpy = jasmine.createSpyObj(['log']);
-    this.sentrySpy = jasmine.createSpyObj(['captureException', 'captureMessage', 'patchGlobal']);
+    this.sentrySpy = jasmine.createSpyObj(['captureException', 'captureMessage', 'install']);
   });
 
   afterEach(function() {
@@ -148,7 +148,7 @@ describe('Logger', function() {
 
       spyOn(process, 'exit');
 
-      this.sentrySpy.patchGlobal.and.callFake(callback => {
+      this.sentrySpy.install.and.callFake(callback => {
         callback(sentrySent, error);
       });
 
@@ -159,7 +159,7 @@ describe('Logger', function() {
     });
 
     it('patches for uncaught errors', function() {
-      expect(this.sentrySpy.patchGlobal).toHaveBeenCalled();
+      expect(this.sentrySpy.install).toHaveBeenCalled();
     });
 
     it('logs the error', function() {
