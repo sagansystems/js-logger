@@ -118,7 +118,6 @@ class Logger {
         tags: envTags,
       });
       this.log('logging errors to sentry', { envTags: envTags });
-      this.log(`client context: ${client.getContext()}`);
     } else {
       this.log('not logging errors to sentry');
     }
