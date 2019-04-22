@@ -115,8 +115,8 @@ class Logger {
       client = raven.config(sentryDSN, {
         logger: serviceName,
         release: release,
+        tags: envTags,
       });
-      client.setContext(envTags);
       this.log('logging errors to sentry', { envTags: envTags });
       this.log(`client context: ${client.getContext()}`);
     } else {
