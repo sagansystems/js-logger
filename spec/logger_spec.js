@@ -136,45 +136,6 @@ describe('Logger', function() {
     });
   });
 
-  describe('handleUncaughtException', function() {
-    const error = new Error('uncaught exeception');
-    const sentrySent = true;
-
-    beforeEach(function() {
-      this.subject = new Logger(testServiceName, testRelease, null, {
-        sentryClient: this.sentrySpy,
-        consoleWriter: this.consoleSpy,
-      });
-
-      spyOn(process, 'exit');
-
-      this.sentrySpy.install.and.callFake(callback => {
-        callback(sentrySent, error);
-      });
-
-      spyOn(this.subject, 'error');
-      spyOn(this.subject, 'flush');
-
-      this.subject.handleUncaughtException();
-    });
-
-    it('patches for uncaught errors', function() {
-      expect(this.sentrySpy.install).toHaveBeenCalled();
-    });
-
-    it('logs the error', function() {
-      expect(this.subject.error).toHaveBeenCalledWith('uncaught exception, exiting', { sentrySent }, error);
-    });
-
-    it('flushes messages', function() {
-      expect(this.subject.flush).toHaveBeenCalled();
-    });
-
-    it('calls process.exit(1)', function() {
-      expect(process.exit).toHaveBeenCalledWith(1);
-    });
-  });
-
   describe('replace logger', function() {
     beforeEach(function() {
       this.subject = new Logger(testServiceName, testRelease, null, {
