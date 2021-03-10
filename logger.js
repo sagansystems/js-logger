@@ -1,7 +1,7 @@
 // logger
 'use strict';
 
-var raven = require('raven');
+const Sentry = require('@sentry/node');
 
 class Logger {
   constructor(serviceName, release, envTags, opts) {
@@ -40,24 +40,6 @@ class Logger {
 
   critical(message, meta, error) {
     this._logWithSentry('critical', message, meta, error);
-  }
-
-  handleUncaughtException() {
-    var uncaughtException = (meta, err) => {
-      this.error('uncaught exception, exiting', meta, err);
-      this.flush();
-      process.exit(1);
-    };
-
-    if (this.sentryClient) {
-      this.sentryClient.install((sentrySent, err) => {
-        uncaughtException({ sentrySent }, err);
-      });
-    } else {
-      process.on('uncaughtException', err => {
-        uncaughtException(null, err);
-      });
-    }
   }
 
   _log(severity, message, meta, error) {
@@ -110,18 +92,18 @@ class Logger {
 
   _createSentryClient(serviceName, release, envTags) {
     var sentryDSN = process.env.SENTRY_DSN;
-    var client;
     if (sentryDSN) {
-      client = raven.config(sentryDSN, {
-        logger: serviceName,
+      Sentry.init({
+        dsn: sentryDSN,
         release: release,
+        logger: serviceName,
         tags: envTags,
       });
       this.log('logging errors to sentry', { envTags: envTags });
     } else {
       this.log('not logging errors to sentry');
     }
-    return client;
+    return Sentry;
   }
 
   _writeMessage(msg) {
